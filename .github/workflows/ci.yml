@@ -1,0 +1,23 @@
+name: C CI Pipeline
+
+on:
+  push:
+    branches: [ "master", "main" ]
+  pull_request:
+    branches: [ "master", "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: sudo apt-get update && sudo apt-get install -y gcc make
+
+    - name: Build the project
+      run: make
+
+    - name: Run the mock datapath
+      run: ./mock_datapath
