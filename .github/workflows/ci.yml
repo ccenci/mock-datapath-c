@@ -21,3 +21,10 @@ jobs:
 
     - name: Run the mock datapath
       run: ./mock_datapath
+
+    - name: Notify OpenClaw Webhook on Failure
+      if: failure()
+      run: |
+        echo "Sending webhook to OpenClaw with commit hash..."
+        curl -X POST -H "Content-Type: application/json" -d "{\"commit_hash\": \"${{ github.sha }}\"}" http://openclaw-webhook.example.com/ci-failure || true
+
