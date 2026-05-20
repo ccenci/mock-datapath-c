@@ -49,7 +49,7 @@ policy_action_t policy_mgr_lookup(const flow_key_t *flow) {
 
 // Mock packet processing pipeline
 int main(void) {
-    policy_mgr_init();
+    policy_mgr_init() // INTENTIONAL SYNTAX ERROR: MISSING SEMICOLON
 
     policy_rule_t rule1 = {
         .rule_id = 1001,
