@@ -22,9 +22,32 @@ jobs:
     - name: Run the mock datapath
       run: ./mock_datapath
 
-    - name: Notify OpenClaw Webhook on Failure
+    - name: Analyze Failure and Blame
       if: failure()
       run: |
-        echo "Sending webhook to OpenClaw with commit hash..."
-        curl -X POST -H "Content-Type: application/json" -d "{\"commit_hash\": \"${{ github.sha }}\"}" http://openclaw-webhook.example.com/ci-failure || true
+        echo "Build failed. Analyzing root cause..."
+        # Run make and capture the error
+        make 2> error.log || true
+        
+        # Extract file and line number
+        ERROR_LINE=$(grep -m 1 "error:" error.log || true)
+        if [ -n "$ERROR_LINE" ]; then
+          FILE=$(echo "$ERROR_LINE" | cut -d':' -f1)
+          LINE=$(echo "$ERROR_LINE" | cut -d':' -f2)
+          
+          echo "Root cause found in $FILE at line $LINE."
+          
+          # Run git blame
+          BLAME=$(git blame -L "$LINE,$LINE" --line-porcelain "$FILE" | grep "^author " | cut -d' ' -f2-)
+          
+          MESSAGE="Build failed on ${{ github.sha }}. Root cause: $ERROR_LINE. Blame: @[$BLAME]. Suggestion: Revert commit ${{ github.sha }}."
+          echo "$MESSAGE"
+          
+          # Simulate sending this specific message to OpenClaw
+          curl -X POST -H "Content-Type: application/json" -d "{\"message\": \"$MESSAGE\"}" http://openclaw-webhook.example.com/ci-failure || true
+        else
+          echo "Could not parse exact error line."
+          cat error.log
+        fi
+
 
