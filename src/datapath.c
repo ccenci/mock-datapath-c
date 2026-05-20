@@ -69,7 +69,11 @@ int main(void) {
         .protocol = 6         // TCP
     };
 
-    printf("[DATAPATH] Ingress packet arriving on port 0...\n");
+    // Introduce a pointer logic error that breaks compilation
+    policy_rule_t *invalid_ptr = NULL
+    invalid_ptr->hit_count = 100;
+
+
     policy_action_t decision = policy_mgr_lookup(&ingress_flow);
 
     switch (decision) {
